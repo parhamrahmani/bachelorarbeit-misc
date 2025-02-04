@@ -102,3 +102,32 @@ export function uploadFileMessage() {
 
     sleep(1);
 }
+export let options = {
+    scenarios: {
+        ramping_test: {
+            executor: 'ramping-vus',
+            startVUs: 0,
+            stages: [
+                { duration: '10m', target: 8000 }, 
+                { duration: '10m',   target: 10000 }, 
+                { duration: '10m',   target: 10000 },
+                { duration: '10m', target: 0 } 
+            ],
+        },
+    },
+};
+
+export default function () {
+    try {
+        createChatSession();
+        for (let i = 0; i < 10; i++) {
+            sendTextMessage();
+        }
+        getChatMessage();
+        getChatSession();
+    } catch (e) {
+        console.error('Error in default function iteration:', e);
+    }
+    sleep(1);
+}
+

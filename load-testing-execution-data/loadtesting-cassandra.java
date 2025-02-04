@@ -1,6 +1,5 @@
 package de.remsfal.service.boundary.project;
 
-
 import com.datastax.oss.driver.api.core.CqlSession;
 import de.remsfal.core.model.project.TaskModel;
 import de.remsfal.service.TestData;
@@ -10,7 +9,6 @@ import de.remsfal.service.entity.dao.ChatSessionRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -25,10 +23,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
-
 @QuarkusTest
-@Ignore
-
 public class loadtesting extends AbstractProjectResourceTest {
 
     @Inject
@@ -52,13 +47,10 @@ public class loadtesting extends AbstractProjectResourceTest {
     static final String CHAT_MESSAGE_ID_1 = "b9854462-abb8-4213-8b15-be9290a19959";
     static final UUID CHAT_MESSAGE_ID_1_UUID = UUID.fromString(CHAT_MESSAGE_ID_1);
 
-
-
     @BeforeEach
     protected void setup() throws Exception {
         logger.info("Setting up test data");
-        logger.info("Setting up test users and projects. User " + TestData.USER_ID +
-                " is the manager of all projects.");
+        logger.info("Setting up test users and projects. User " + TestData.USER_ID + " is the manager of all projects.");
         super.setupTestUsers();
         super.setupTestProjects();
         logger.info("Setting up project memberships");
@@ -84,9 +76,7 @@ public class loadtesting extends AbstractProjectResourceTest {
                 .executeUpdate());
         logger.info("User " + TestData.USER_ID_4 + " is a proprietor in project " + TestData.PROJECT_ID_1);
         runInTransaction(() -> entityManager
-                .createNativeQuery("INSERT INTO TASK (ID, TYPE, PROJECT_ID, TITLE, DESCRIPTION, STATUS, CREATED_BY)"
-                        +
-                        " VALUES (?,?,?,?,?,?,?)")
+                .createNativeQuery("INSERT INTO TASK (ID, TYPE, PROJECT_ID, TITLE, DESCRIPTION, STATUS, CREATED_BY) VALUES (?,?,?,?,?,?,?)")
                 .setParameter(1, TASK_ID_1)
                 .setParameter(2, "TASK")
                 .setParameter(3, TestData.PROJECT_ID_1)
@@ -96,9 +86,7 @@ public class loadtesting extends AbstractProjectResourceTest {
                 .setParameter(7, TestData.USER_ID)
                 .executeUpdate());
         runInTransaction(() -> entityManager
-                .createNativeQuery("INSERT INTO TASK (ID, TYPE, PROJECT_ID, TITLE, DESCRIPTION, STATUS, CREATED_BY)"
-                        +
-                        " VALUES (?,?,?,?,?,?,?)")
+                .createNativeQuery("INSERT INTO TASK (ID, TYPE, PROJECT_ID, TITLE, DESCRIPTION, STATUS, CREATED_BY) VALUES (?,?,?,?,?,?,?)")
                 .setParameter(1, TASK_ID_2)
                 .setParameter(2, "DEFECT")
                 .setParameter(3, TestData.PROJECT_ID_1)
@@ -119,9 +107,7 @@ public class loadtesting extends AbstractProjectResourceTest {
                         USER_ID_4_UUID, ChatSessionRepository.ParticipantRole.INITIATOR.name(),
                         USER_ID_3_UUID, ChatSessionRepository.ParticipantRole.HANDLER.name()
                 ));
-        logger.info("Session 1 "+ EXAMPLE_CHAT_SESSION_ID_1 +
-                " created. " +
-                "On project "+TestData.PROJECT_ID_1 + " and "+ ChatSessionRepository.TaskType.TASK.name() + ": TASK_ID_1.");
+        logger.info("Session 1 " + EXAMPLE_CHAT_SESSION_ID_1 + " created on project " + TestData.PROJECT_ID_1);
         String insertChatMessageCql = "INSERT INTO REMSFAL.chat_messages " +
                 "(chat_session_id, message_id, sender_id, content_type, content, created_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -137,7 +123,6 @@ public class loadtesting extends AbstractProjectResourceTest {
             entityManager.createNativeQuery("DELETE FROM PROJECT_MEMBERSHIP WHERE PROJECT_ID = ?")
                     .setParameter(1, TestData.PROJECT_ID_1)
                     .executeUpdate();
-
             entityManager.createNativeQuery("DELETE FROM TASK WHERE PROJECT_ID = ?")
                     .setParameter(1, TestData.PROJECT_ID_1)
                     .executeUpdate();
@@ -148,27 +133,16 @@ public class loadtesting extends AbstractProjectResourceTest {
     private String regenerateCookie() {
         try {
             if (cookieString == null) {
-                // Initialize cookieString if it's null
                 logger.warn("cookieString is null, generating a new cookie.");
                 cookieString = generateInitialCookie();
             }
-
-            // Extract the refresh token from the existing cookie string
             String refreshToken = extractRefreshToken(cookieString);
-
-            // Create a map for the current cookies using the refresh token
             Map<String, jakarta.ws.rs.core.Cookie> currentCookies = Map.of(
-                    SessionManager.REFRESH_COOKIE_NAME, new jakarta.ws.rs.core.Cookie(
-                            SessionManager.REFRESH_COOKIE_NAME, refreshToken)
+                    SessionManager.REFRESH_COOKIE_NAME, new jakarta.ws.rs.core.Cookie(SessionManager.REFRESH_COOKIE_NAME, refreshToken)
             );
-
-            // Use the SessionManager to renew tokens
             SessionManager.TokenRenewalResponse renewalResponse = sessionManager.renewTokens(currentCookies);
-
-            // Update the cookie string with the new tokens
             cookieString = SessionManager.ACCESS_COOKIE_NAME + "=" + renewalResponse.getAccessToken().getValue()
                     + "; " + SessionManager.REFRESH_COOKIE_NAME + "=" + renewalResponse.getRefreshToken().getValue();
-
             return cookieString;
         } catch (Exception e) {
             logger.error("Error regenerating cookies: " + e.getMessage(), e);
@@ -176,7 +150,6 @@ public class loadtesting extends AbstractProjectResourceTest {
         }
     }
 
-    // Helper method to extract the refresh token from the existing cookie string
     private String extractRefreshToken(String cookieString) {
         for (String cookie : cookieString.split(";")) {
             String[] keyValue = cookie.trim().split("=");
@@ -187,20 +160,12 @@ public class loadtesting extends AbstractProjectResourceTest {
         throw new RuntimeException("Refresh token not found in cookie string.");
     }
 
-    // Generate initial cookies when cookieString is null
     private String generateInitialCookie() {
-        Duration ttl = Duration.ofMinutes(5); // Default TTL
-        Map<String, ?> cookies = buildCookies(
-                TestData.USER_ID,
-                TestData.USER_EMAIL,
-                ttl
-        );
+        Duration ttl = Duration.ofMinutes(5);
+        Map<String, ?> cookies = buildCookies(TestData.USER_ID, TestData.USER_EMAIL, ttl);
         return SessionManager.ACCESS_COOKIE_NAME + "=" + cookies.get(SessionManager.ACCESS_COOKIE_NAME)
                 + "; " + SessionManager.REFRESH_COOKIE_NAME + "=" + cookies.get(SessionManager.REFRESH_COOKIE_NAME);
     }
-
-
-
 
     @Test
     public void testLoadWithK6AndPrometheusRemoteWrite() throws Exception {
@@ -210,7 +175,6 @@ public class loadtesting extends AbstractProjectResourceTest {
             HttpURLConnection connection = (HttpURLConnection) influxUrl.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
-
             if (connection.getResponseCode() != 204) {
                 throw new RuntimeException("Unable to connect to InfluxDB at http://127.0.0.1:8091");
             }
@@ -224,8 +188,7 @@ public class loadtesting extends AbstractProjectResourceTest {
         cookieString = regenerateCookie();
 
         // Path to your k6 scenario script
-        String k6ScriptPath = "/home/parham/load-testing/load-testing/scenario-default.js";
-
+        String k6ScriptPath = "/home/parham/load-testing/load-testing/chat-requests.js";
         File k6ScriptFile = new File(k6ScriptPath);
         if (!k6ScriptFile.exists()) {
             throw new RuntimeException("K6 script file not found: " + k6ScriptPath);
@@ -253,13 +216,15 @@ public class loadtesting extends AbstractProjectResourceTest {
         new Thread(() -> {
             try {
                 while (true) {
-                    Thread.sleep(3 * 60 * 1000); // Refresh every 3 minutes (adjust as needed)
+                    Thread.sleep(3 * 60 * 1000); // Refresh every 3 minutes
                     cookieString = regenerateCookie();
                     env.put("TEST_COOKIE", cookieString);
                     logger.info("Refreshed TEST_COOKIE.");
                 }
             } catch (InterruptedException e) {
                 logger.error("Cookie refresh thread interrupted.", e);
+            } catch (Exception e) {
+                logger.error("Error in cookie refresh thread", e);
             }
         }).start();
 
@@ -280,14 +245,13 @@ public class loadtesting extends AbstractProjectResourceTest {
 
             int k6ExitCode = k6Process.waitFor();
             logger.info("k6 finished with exitCode=" + k6ExitCode);
-
-            if (k6ExitCode == 0) {
-                logger.info("Test completed successfully. The web-dashboard is running at http://127.0.0.1:5665");
-            } else {
-                logger.error("K6 test failed with exit code: " + k6ExitCode);
+            // Log nonzero exit code but do not throw an exception.
+            if (k6ExitCode != 0) {
+                logger.error("K6 test finished with non-zero exit code: " + k6ExitCode + ". Continuing test execution.");
             }
         } catch (Exception e) {
             logger.error("Error while running K6 process", e);
         }
     }
 }
+

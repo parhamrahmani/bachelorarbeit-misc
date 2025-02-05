@@ -173,8 +173,8 @@ public class loadtesting extends AbstractProjectResourceTest {
         });
         logger.info("Cleanup completed.");
     }
-
-    private String regenerateCookie() {
+   @ActivateRequestContext
+    public String regenerateCookie() {
         try {
             if (cookieString == null) {
                 logger.warn("cookieString is null, generating a new cookie.");

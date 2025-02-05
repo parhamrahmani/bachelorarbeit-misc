@@ -1,0 +1,10 @@
+// other configs
+
+// configs for load testing to add (not for production)
+# Connection pooling
+quarkus.datasource.jdbc.min-size=2
+quarkus.datasource.jdbc.max-size=150
+quarkus.datasource.jdbc.acquisition-timeout=20000
+
+
+de.remsfal.auth.access-token.timeout=PT90M
